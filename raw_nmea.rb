@@ -1,18 +1,6 @@
-# GPRMC
-# 
-# eg1. $GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62
-# eg2. $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68
-#
-#           225446       Time of fix 22:54:46 UTC
-#           A            Navigation receiver warning A = Valid position, V = Warning
-#           4916.45,N    Latitude 49 deg. 16.45 min. North
-#           12311.12,W   Longitude 123 deg. 11.12 min. West
-#           000.5        Speed over ground, Knots
-#           054.7        Course Made Good, degrees true
-#           191194       UTC Date of fix, 19 November 1994
-#           020.3,E      Magnetic variation, 20.3 deg. East
-#           *68          mandatory checksum
-#######################################################################################
+# raw_nmea.rb is some code I hacked together because I couldn't get the NMEA gem to 
+# work, the following information is taken from an html file included in said gem.
+
 class RawNMEAData
   def initialize data_dir
     # these sentence types have time, latitude and longitude
@@ -31,6 +19,7 @@ class RawNMEAData
     if @sentences.nil?
       @sentences = []
       @sentence_types = []
+      @gpgga_pts = []
        
       @filenames.each do |filename|
         File.open(filename).each do |sentence|
@@ -39,6 +28,9 @@ class RawNMEAData
           if t =~ /^\$G/
             @sentences << sentence
             @sentence_types << t unless @sentence_types.member? t
+            if t == "$GPGGA"
+              @gpgga_pts << GPGGA.parse(sentence)
+            end
           end
         end
       end
@@ -52,14 +44,95 @@ class RawNMEAData
     return @sentence_types
   end
 
-  private
-    def get_utc time_str
-      hrs = time_str[0,2]
-      mns = time_str[2,4]
-      sec = time_str[4,6]
-    end
+  def gpgga_pts
+    return @gpgga_pts.first
+  end
+end
+
+
+#######################################################################################
+# Global Positioning System Fix Data
+#
+# eg1. $GPGGA,170834,4124.8963,N,08151.6838,W,1,05,1.5,280.2,M,-34.0,M,,,*75
+#
+# Name                                    Example Data   Description
+# Sentence  Identifier                    $GPGGA         Global Positioning System Fix Data
+# Time                                    170834         17:08:34 UTC
+# Latitude                                4124.8963, N   41d 24.8963' N or 41d 24' 54" N
+# Longitude                               08151.6838, W  81d 51.6838' W or 81d 51' 41" W
+# Fix Quality:
+# - 0 = Invalid
+# - 1 = GPS fix
+# - 2 = DGPS fix                          1               Data is from a GPS fix
+# Number of Satellites                    05              5 Satellites are in view
+# Horizontal Dilution of Precision (HDOP) 1.5             Relative accuracy of 
+#                                                         horizontal position
+# Altitude                                280.2, M        280.2 meters above mean sea level
+# Height of geoid above WGS84 ellipsoid  -34.0, M         -34.0 meters
+# Time since last DGPS update             blank           No last update
+# DGPS reference station id               blank           No station id
+# Checksum                                *75             Used by program to check 
+#                                                         for transmission errors
+#
+#######################################################################################
+class GPGGA
+  def self.parse sentence
+    @format,
+    @utc,
+    @latitude, 
+    @northsouth, 
+    @longitude, 
+    @eastwest, 
+    @quality, 
+    @number_of_satellites_in_use, 
+    @horizontal_dilution, 
+    @altitude, 
+    @above_sea_unit, 
+    @geoidal_separation, 
+    @geoidal_separation_unit, 
+    @data_age, 
+    @diff_ref_stationID = sentence.split(",")
+    
+    return {format:   @format,
+            utc:      @utc,
+            latitude: @latitude, 
+            northsouth: @northsouth, 
+            longitude: @longitude, 
+            eastwest: @eastwest, 
+            quality: @quality, 
+            number_of_satellites_in_use: @number_of_satellites_in_use, 
+            horizontal_dilution: @horizontal_dilution, 
+            altitude: @altitude, 
+            above_sea_unit: @above_sea_unit, 
+            geoidal_separation: @geoidal_separation, 
+            geoidal_separation_unit: @geoidal_separation_unit, 
+            data_age: @data_age, 
+            diff_ref_stationID: @diff_ref_stationID }
+    
+  end
+end
+
+#######################################################################################
+# GPRMC
+# 
+# eg1. $GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62
+# eg2. $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68
+#
+#           225446       Time of fix 22:54:46 UTC
+#           A            Navigation receiver warning A = Valid position, V = Warning
+#           4916.45,N    Latitude 49 deg. 16.45 min. North
+#           12311.12,W   Longitude 123 deg. 11.12 min. West
+#           000.5        Speed over ground, Knots
+#           054.7        Course Made Good, degrees true
+#           191194       UTC Date of fix, 19 November 1994
+#           020.3,E      Magnetic variation, 20.3 deg. East
+#           *68          mandatory checksum
+#######################################################################################
+class GPRMC
+  def parse sentence
+  end
 end
 
 r = RawNMEAData.new "~/Dropbox/Data/GPS/"
-puts r.import_from_files
-puts r.sentence_types.inspect
+r.import_from_files
+puts r.gpgga_pts
