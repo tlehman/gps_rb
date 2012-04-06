@@ -49,7 +49,6 @@ class RawNMEAData
   end
 end
 
-
 #######################################################################################
 # Global Positioning System Fix Data
 #
@@ -130,6 +129,8 @@ end
 #######################################################################################
 class GPRMC
   def parse sentence
+    # TODO: implement
+    sentence
   end
 end
 
