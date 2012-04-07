@@ -1,5 +1,6 @@
 # raw_nmea.rb is some code I hacked together because I couldn't get the NMEA gem to 
 # work, the following information is taken from an html file included in said gem.
+require 'pry'
 
 class RawNMEAData
   def initialize data_dir
@@ -29,7 +30,19 @@ class RawNMEAData
             @sentences << sentence
             @sentence_types << t unless @sentence_types.member? t
             if t == "$GPGGA"
-              @gpgga_pts << GPGGA.parse(sentence)
+              sentence = sentence.gsub(/^\$GPGGA,/, '')                     # chop off $GPGGA
+              thedate = filename.scan(/GPS_\d{8}/).first.gsub(/GPS_/,'')    # extract date from filename
+                                                                            #
+              ye1,ye2,mon,day = thedate.scan(/\d{2}/)                       #
+              thedate = "#{ye1+ye2}-#{mon}-#{day}"                          #  prettify date
+
+              thetime = sentence.scan(/^[\d+\.]+,/).first                   # extract time from sentence
+              hour,min,sec = thetime.gsub(/\.\d+,$/,'').scan(/\d{2}/)       # decompose time
+              sentence = sentence.gsub(/^[\d+\.]+,/,'')                     # delete unformatted time
+
+              g = GPGGA.new "'#{thedate} #{hour}:#{min}:#{sec} UTC', #{sentence}"
+              binding.pry
+              @gpgga_pts << g.to_hash
             end
           end
         end
@@ -45,7 +58,7 @@ class RawNMEAData
   end
 
   def gpgga_pts
-    return @gpgga_pts.first
+    return @gpgga_pts[4]
   end
 end
 
@@ -75,32 +88,44 @@ end
 #
 #######################################################################################
 class GPGGA
-  def self.parse sentence
-    @format,
+  def initialize sentence
     @utc,
-    @latitude, 
-    @northsouth, 
-    @longitude, 
+    @latitude,
+    @northsouth,
+    @longitude,
     @eastwest, 
-    @quality, 
-    @number_of_satellites_in_use, 
-    @horizontal_dilution, 
-    @altitude, 
-    @above_sea_unit, 
-    @geoidal_separation, 
-    @geoidal_separation_unit, 
-    @data_age, 
+    @quality,
+    @number_of_satellites_in_use,
+    @hdop, 
+    @altitude,
+    @above_sea_unit,
+    @geoidal_separation,
+    @geoidal_separation_unit,
+    @data_age,
     @diff_ref_stationID = sentence.split(",")
+
+    @latitude = @latitude.to_f
+    @longitude = @longitude.to_f
+    @quality = @quality.to_f
+    @number_of_satellites_in_use = @number_of_satellites_in_use.to_i
+    @hdop = @hdop.to_i
+    @altitude = @altitude.to_f
+    @geoidal_separation = @geoidal_separation.to_f
+  end
+
+  def to_sql
+    return "INSERT INTO points (t, lat, ns, lng, ew, fixquality, numsatellites, hdop, alt, alt_unit, geoid_height, geoid_unit) VALUES(#{@utc}, #{@latitude}, '#{@northsouth}', #{@longitude}, '#{@eastwest}', #{@quality}, #{@number_of_satellites_in_use}, #{@hdop}, #{@altitude}, '#{@above_sea_unit}', #{@geoidal_separation}, '#{@geoidal_separation_unit}')"
+  end
     
-    return {format:   @format,
-            utc:      @utc,
+  def to_hash
+    return {utc:      @utc,
             latitude: @latitude, 
             northsouth: @northsouth, 
             longitude: @longitude, 
             eastwest: @eastwest, 
             quality: @quality, 
             number_of_satellites_in_use: @number_of_satellites_in_use, 
-            horizontal_dilution: @horizontal_dilution, 
+            hdop: @hdop, 
             altitude: @altitude, 
             above_sea_unit: @above_sea_unit, 
             geoidal_separation: @geoidal_separation, 
