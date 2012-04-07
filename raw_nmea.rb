@@ -16,11 +16,16 @@ class RawNMEAData
     end
   end
 
+  def get_sql_inserts
+    return @insert_statements
+  end
+
   def import_from_files
     if @sentences.nil?
       @sentences = []
       @sentence_types = []
       @gpgga_pts = []
+      @insert_statements = []
        
       @filenames.each do |filename|
         File.open(filename).each do |sentence|
@@ -41,8 +46,8 @@ class RawNMEAData
               sentence = sentence.gsub(/^[\d+\.]+,/,'')                     # delete unformatted time
 
               g = GPGGA.new "'#{thedate} #{hour}:#{min}:#{sec} UTC', #{sentence}"
-              binding.pry
               @gpgga_pts << g.to_hash
+              @insert_statements << g.to_sql
             end
           end
         end
@@ -114,7 +119,7 @@ class GPGGA
   end
 
   def to_sql
-    return "INSERT INTO points (t, lat, ns, lng, ew, fixquality, numsatellites, hdop, alt, alt_unit, geoid_height, geoid_unit) VALUES(#{@utc}, #{@latitude}, '#{@northsouth}', #{@longitude}, '#{@eastwest}', #{@quality}, #{@number_of_satellites_in_use}, #{@hdop}, #{@altitude}, '#{@above_sea_unit}', #{@geoidal_separation}, '#{@geoidal_separation_unit}')"
+    return "INSERT INTO points (t, lat, ns, lng, ew, fixquality, numsatellites, hdop, alt, alt_unit, geoid_height, geoid_unit) VALUES(#{@utc}, #{@latitude}, '#{@northsouth}', #{@longitude}, '#{@eastwest}', #{@quality}, #{@number_of_satellites_in_use}, #{@hdop}, #{@altitude}, '#{@above_sea_unit}', #{@geoidal_separation}, '#{@geoidal_separation_unit}');"
   end
     
   def to_hash
@@ -161,4 +166,4 @@ end
 
 r = RawNMEAData.new "~/Dropbox/Data/GPS/"
 r.import_from_files
-puts r.gpgga_pts
+puts r.get_sql_inserts
