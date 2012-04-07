@@ -7,4 +7,6 @@ Features:
   and number of satellites
 
 To-Do List:
-* TODO: implement the GPRMC parsing
+
+* implement the GPRMC parsing
+* ~~learn markdown~~
