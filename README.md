@@ -1,12 +1,13 @@
-A simple NMEA parser for GPRMC and GPGGA sentences from an AMOD 3080 GPS Data Logger
-====================================================================================
+A simple NMEA parser and database utility for an AMOD 3080 GPS Data Logger
+==========================================================================
 
 Features:
 
 * takes .log files and extracts date, time, latitude, longitude, altitude, 
-  and number of satellites
+  and number of satellites, then inserts into a database
+
 
 To-Do List:
 
-* implement the GPRMC parsing
+* ~~implement the GPRMC parsing~~
 * ~~learn markdown~~
