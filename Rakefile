@@ -19,6 +19,7 @@ namespace :gps do
 end
 
 namespace :notes do
+  desc "Enumerate all annotations"
   task :todo do
     # TODO: make a rake notes:todo feature like in rails
   end
