@@ -16,7 +16,7 @@ To-Do List:
 	- Copies all files to Data Store
 		- Data store config require some configuration file
 
-- Change the interface of NMEAFile to behave more like file
+- ~~Change the interface of NMEAFile to behave more like file~~
 	- example usage: 
 	  
 	  NMEAFile.open(filename).each do |nmea|
