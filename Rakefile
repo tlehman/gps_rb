@@ -38,6 +38,26 @@ namespace :gps do
       end
     end
   end
+  
+  desc "Clear out files on GPS Logger (the AMOD 3080 only has 114 MB)"
+  task :clear => :conn? do
+    files_store = Dir.glob("#{config['file_store']}/*.log").map { |file| file.split("/").last }
+    uniq_files = Dir.glob("/Volumes/GPS Tracker/GPSFILES/*.log").reject do |file| 
+      files_store.member? file.split("/").last
+    end
+    if uniq_files.length > 0
+      # ask user if they want to clear
+      puts "There are #{uniq_files.length} files on the device that have not been stored".red
+      if gets("Are you sure you want to clear? (YES/NO)") =~ /yes/i
+        # move files to trash 
+        FileUtils.mv Dir.glob("/Volumes/GPS Tracker/GPSFILES/*.log"), File.expand_path("~/.Trash"), :verbose => true
+      else
+        puts "No files were cleared. Run 'rake gps:store' to copy the unique files to the data store.".yellow
+      end
+    else
+      FileUtils.mv Dir.glob("/Volumes/GPS Tracker/GPSFILES/*.log"), File.expand_path("~/.Trash"), :verbose => true
+    end
+  end
 end
 
 namespace :notes do

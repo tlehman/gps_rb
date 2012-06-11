@@ -24,7 +24,4 @@ To-Do List:
 - Abstract away dealing with the file system: remove repetitive code 
 from rake tasks
 - Add support for annotations (rake notes:annotation where "# ANNOTATION" is a comment)
-- Add rake gps:clear that 
-	- checks if any uniq files
-		- if yes, then ask the user to confirm deletion
-		- otherwise, move the files to trash
+- ~~Add rake gps:clear ~~
