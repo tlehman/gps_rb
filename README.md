@@ -17,10 +17,14 @@ To-Do List:
 		- ~~Data store config require some configuration file~~
 - ~~Change the interface of NMEAFile to behave more like file~~
 	- example usage: 
-	  
 	  NMEAFile.open(filename).each do |nmea|
 			process_nmea_object(nmea)
 	  end
 - Store GPS Logger path in config.yml (related to other OS support)
 - Abstract away dealing with the file system: remove repetitive code 
 from rake tasks
+- Add support for annotations (rake notes:annotation where "# ANNOTATION" is a comment)
+- Add rake gps:clear that 
+	- checks if any uniq files
+		- if yes, then ask the user to confirm deletion
+		- otherwise, move the files to trash

@@ -20,7 +20,6 @@ namespace :gps do
     puts "Checking uniqueness of files on GPS logger"
     files_store = Dir.glob("#{config["file_store"]}/*.log").map {|file| file.split("/").last }
     Dir.glob("/Volumes/GPS Tracker/GPSFILES/*.log").each do |file_dev|
-
       if !files_store.member? file_dev.split("/").last
         puts "\t#{file_dev} (unique)".green
       else
