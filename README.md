@@ -25,3 +25,4 @@ To-Do List:
 from rake tasks
 - Add support for annotations (rake notes:annotation where "# ANNOTATION" is a comment)
 - ~~Add rake gps:clear ~~
+- Add database support
